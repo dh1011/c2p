@@ -1,71 +1,50 @@
-# c2p README
+# C2P - Code to Prompt
 
-This is the README for your extension "c2p". After writing up a brief description, we recommend including the following sections.
+C2P (Code to Prompt) is a VS Code extension that helps you prepare your codebase for Large Language Model (LLM) interactions. It allows you to select specific files from your workspace, formats them with clear file path headers, and creates a prompt that you can easily copy and paste into your preferred LLM interface.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 📁 Interactive file tree view of your workspace
+- 🔍 Smart file filtering (respects .gitignore)
+- 📊 Token counting for each file and total selection
+- 📋 One-click copying of formatted prompts
+- ⚙️ Configurable settings for maximum files and tokens
 
-For example if there is an image subfolder under your extension project workspace:
+## Installation
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Open VS Code
+2. Go to the Extensions view (Ctrl+Shift+X)
+3. Search for "C2P"
+4. Click Install
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Usage
 
-## Requirements
+1. Click the "C2P - Code to Prompt" button in the status bar or use the command palette (Ctrl+Shift+P) and search for "C2P: Open Control Panel"
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+2. In the control panel:
+   - Select the files you want to include in your prompt
+   - Monitor the total token count
+   - Enter your query/question for the LLM
+   - Click "Copy Prompt" to copy the formatted content to your clipboard
 
-## Extension Settings
+3. Paste the generated prompt into your preferred LLM interface
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Configuration
 
-For example:
+The extension provides several configuration options:
 
-This extension contributes the following settings:
+- `c2p.maxFiles`: Maximum number of files that can be processed (default: 100)
+- `c2p.maxPromptTokens`: Maximum allowed tokens in the final prompt (default: 32000)
+- `c2p.useGitignore`: Whether to respect .gitignore patterns (default: true)
+- `c2p.excludedFolders`: Additional folders to exclude
+- `c2p.excludedFiles`: Additional file patterns to exclude
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Notes
 
-## Known Issues
+- The extension automatically excludes binary files and common non-text formats
+- Token counting uses the Claude/Anthropic tokenizer
+- File paths are formatted as headers (e.g., "FILE: /src/index.js") for clear organization
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## License
 
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT

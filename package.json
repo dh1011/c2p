@@ -7,15 +7,99 @@
     "vscode": "^1.93.0"
   },
   "categories": [
-    "Other"
+    "Machine Learning"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "c2p",
+      "properties": {
+        "c2p.maxFiles": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of files that the extension will read."
+        },
+        "c2p.maxPromptTokens": {
+          "type": "number",
+          "default": 32000,
+          "description": "Maximum token count for the prompt to be copied."
+        },
+        "c2p.useGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use .gitignore to determine which files to ignore."
+        },
+        "c2p.excludedFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            "venv",
+            "__pycache__",
+            ".git",
+            "dist",
+            "build",
+            ".*"
+          ],
+          "description": "List of folders to exclude. Supports glob patterns (e.g., '.*' for all hidden folders)."
+        },
+        "c2p.excludedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/.*",
+            "**/LICENSE*",
+            "**/LICENCE*",
+            "**/CODE_OF_CONDUCT*",
+            "**/CONTRIBUTING*",
+            "**/CHANGELOG*",
+            "**/SECURITY*",
+            "**/AUTHORS*",
+            "**/CONTRIBUTORS*",
+            "**/ACKNOWLEDGMENTS*",
+            "**/package-lock.json",
+            "**/yarn.lock",
+            "**/pnpm-lock.yaml",
+            "**/composer.lock",
+            "**/Gemfile.lock",
+            "**/poetry.lock",
+            "**/requirements.txt",
+            "**/Pipfile.lock",
+            "**/cargo.lock",
+            "**/.editorconfig",
+            "**/.prettierrc*",
+            "**/.eslintrc*",
+            "**/.stylelintrc*",
+            "**/browserslist",
+            "**/Dockerfile",
+            "**/docker-compose*.yml",
+            "**/Makefile",
+            "**/README*",
+            "**/.dockerignore",
+            "**/.env.example",
+            "**/.nvmrc",
+            "**/.python-version",
+            "**/.ruby-version",
+            "**/.tool-versions",
+            "**/CODEOWNERS",
+            "**/robots.txt",
+            "**/sitemap.xml",
+            "**/manifest.json",
+            "**/browserconfig.xml"
+          ],
+          "description": "List of files to exclude, including common project files. Supports glob patterns (e.g., '**/.*' for all hidden files)."
+        }
+      }
+    },
     "commands": [
       {
-        "command": "c2p.showFileContent",
-        "title": "Show Content of Files"
+        "command": "c2p.controlPanel",
+        "title": "C2P - Code to Prompt"
       }
     ]
   },
@@ -47,6 +131,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@anthropic-ai/tokenizer": "^0.0.4"
+    "@anthropic-ai/tokenizer": "^0.0.4",
+    "@vscode/webview-ui-toolkit": "^1.4.0"
   }
 }
