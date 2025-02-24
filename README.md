@@ -2,6 +2,10 @@
 
 C2P (Code to Prompt) is a VS Code extension that helps you prepare your codebase for Large Language Model (LLM) interactions. It allows you to select specific files from your workspace, formats them with clear file path headers, and creates a prompt that you can easily copy and paste into your preferred LLM interface.
 
+
+https://github.com/user-attachments/assets/6124263f-2483-4a5c-913b-180b5ac6d947
+
+
 ## Features
 
 - 📁 Interactive file tree view of your workspace
