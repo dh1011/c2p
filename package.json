@@ -1,8 +1,9 @@
 {
   "name": "c2p",
   "displayName": "c2p",
-  "description": "Code to Prompt",
-  "version": "0.0.1",
+  "description": "VS Code extension that helps copy code from a repository into a context prompt for LLMs ",
+  "version": "1.0.0",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -133,5 +134,10 @@
   "dependencies": {
     "@anthropic-ai/tokenizer": "^0.0.4",
     "@vscode/webview-ui-toolkit": "^1.4.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dh1011/c2p.git"
+  },
+  "publisher": "H337"
 }
