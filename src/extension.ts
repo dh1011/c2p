@@ -3,14 +3,14 @@ import { countTokens } from '@anthropic-ai/tokenizer';
 
 interface FileDetail {
   path: string;
-  tokens: number;
+  tokens: number | null;
   content: string;
 }
 
 interface TreeNode {
   name: string;
   isFile: boolean;
-  tokens?: number;
+  tokens?: number | null;
   content?: string;
   children: { [key: string]: TreeNode };
 }
@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true }
     );
 
-    // Initially populate the WebView content.
+    // Initially populate the WebView content without computing token counts.
     await updateWebviewContent(panel, workspaceFolder.uri, config, maxFiles, maxPromptTokens, useGitignore, context);
 
     // Listen for messages from the WebView.
@@ -66,8 +66,11 @@ export function activate(context: vscode.ExtensionContext) {
         await vscode.env.clipboard.writeText(promptText);
         panel.webview.postMessage({ command: 'promptCopied' });
       } else if (message.command === 'refresh') {
-        // Re-scan the workspace and update the WebView content.
+        // Re-scan the workspace and update the WebView content without computing tokens.
         await updateWebviewContent(panel, workspaceFolder.uri, config, maxFiles, maxPromptTokens, useGitignore, context);
+      } else if (message.command === 'countTokens') {
+        // Re-scan the workspace and update the WebView content while computing token counts.
+        await updateWebviewContent(panel, workspaceFolder.uri, config, maxFiles, maxPromptTokens, useGitignore, context, true);
       }
     });
   });
@@ -82,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBarItem);
 }
 
-// This function re-runs file scanning, rebuilds the file tree, and updates the WebView.
+// Now update the signature to accept a flag for computing tokens.
 async function updateWebviewContent(
   panel: vscode.WebviewPanel,
   workspaceFolder: vscode.Uri,
@@ -90,7 +93,8 @@ async function updateWebviewContent(
   maxFiles: number,
   maxPromptTokens: number,
   useGitignore: boolean,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  computeTokens: boolean = false
 ) {
   // --- Build Ignore Patterns ---
   const excludedFolders = config.get<string[]>('excludedFolders', [
@@ -173,10 +177,11 @@ async function updateWebviewContent(
       try {
         const contentBuffer = await vscode.workspace.fs.readFile(file);
         const content = decoder.decode(contentBuffer);
-        const tokens = countTokens(content);
+        // Compute tokens only if requested; otherwise, leave as null.
+        const tokens = computeTokens ? countTokens(content) : null;
         return { path: vscode.workspace.asRelativePath(file), tokens, content };
       } catch (error) {
-        return { path: vscode.workspace.asRelativePath(file), tokens: 0, content: '' };
+        return { path: vscode.workspace.asRelativePath(file), tokens: null, content: '' };
       }
     })
   );
@@ -218,13 +223,14 @@ function buildFileTree(details: FileDetail[]): TreeNode {
   return root;
 }
 
-// Convert the tree to an HTML list with checkboxes (only showing names and token counts).
+// Convert the tree to an HTML list with checkboxes.  
+// If a file's token count is not computed, display a placeholder “–”.
 function treeToHtml(node: TreeNode, parentPath: string): string {
   const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
   if (node.isFile) {
     return `<li>
-      <vscode-checkbox class="node-checkbox" data-path="${currentPath}" data-tokens="${node.tokens}" checked>
-        ${escapeHtml(node.name)} <vscode-badge>${node.tokens}</vscode-badge>
+      <vscode-checkbox class="node-checkbox" data-path="${currentPath}" data-tokens="${node.tokens !== null ? node.tokens : '-'}" checked>
+        ${escapeHtml(node.name)} <vscode-badge>${node.tokens !== null ? node.tokens : '-'}</vscode-badge>
       </vscode-checkbox>
     </li>`;
   } else {
@@ -328,10 +334,13 @@ function getWebviewContent(
       <vscode-button id="refreshBtn">
         Refresh Workspace
       </vscode-button>
+      <vscode-button id="countTokensBtn">
+        Count Tokens
+      </vscode-button>
     </div>
     <div style="margin-top: 8px;">
       <vscode-label>Total Tokens:</vscode-label>
-      <vscode-badge id="totalTokens">0</vscode-badge>
+      <vscode-badge id="totalTokens">-</vscode-badge>
     </div>
   </div>
 
@@ -360,50 +369,42 @@ function getWebviewContent(
     function recalcTotalTokens() {
       const checkboxes = document.querySelectorAll('.node-checkbox');
       let total = 0;
+      let anyCounted = false;
       checkboxes.forEach(cb => {
         if (cb.checked && cb.hasAttribute('data-tokens')) {
-          total += Number(cb.getAttribute('data-tokens'));
+          const tokenStr = cb.getAttribute('data-tokens');
+          if (tokenStr && tokenStr !== '-' && tokenStr !== null) {
+            anyCounted = true;
+            total += Number(tokenStr);
+          }
         }
       });
-      document.getElementById('totalTokens').textContent = total.toString();
+      document.getElementById('totalTokens').textContent = anyCounted ? total.toString() : '-';
     }
 
-    // Call recalcTotalTokens immediately after the page loads
+    // When the DOM content is loaded, recalc tokens (if any are computed).
     document.addEventListener('DOMContentLoaded', recalcTotalTokens);
 
+    // Sync child checkboxes with parent checkbox.
     document.querySelectorAll('.node-checkbox').forEach(cb => {
-      cb.addEventListener('change', (event) => {
-        // Update all child checkboxes to match parent's state
+      cb.addEventListener('change', () => {
         const li = cb.closest('li');
         const childCheckboxes = li.querySelectorAll('ul .node-checkbox');
         childCheckboxes.forEach(childCb => {
           childCb.checked = cb.checked;
         });
-        
+        // Update total tokens (will show '-' if tokens are not computed).
         recalcTotalTokens();
       });
     });
 
-    // Get structure (paths only) from checked nodes.
-    function getCheckedStructure(ul) {
-      let lines = [];
-      const liElements = ul.children;
-      for (const li of liElements) {
-        const checkbox = li.querySelector('.node-checkbox');
-        if (checkbox && checkbox.checked) {
-          const path = checkbox.getAttribute('data-path');
-          if (path) {
-            const childUl = li.querySelector('ul');
-            if (childUl) {
-              lines = lines.concat(getCheckedStructure(childUl));
-            } else {
-              lines.push(path);
-            }
-          }
-        }
-      }
-      return lines;
-    }
+    // When "Count Tokens" is clicked, disable and grey out the button while waiting.
+    document.getElementById('countTokensBtn').addEventListener('click', () => {
+      const btn = document.getElementById('countTokensBtn');
+      btn.disabled = true;
+      btn.textContent = 'Counting...';
+      vscodeApi.postMessage({ command: 'countTokens' });
+    });
 
     // Enable or disable the Copy LLM Context Prompt button based on query input.
     const llmCommandInput = document.getElementById('llmCommand');
@@ -429,6 +430,27 @@ function getWebviewContent(
         alert('Failed to copy structure: ' + err);
       });
     });
+
+    // Get structure (paths only) from checked nodes.
+    function getCheckedStructure(ul) {
+      let lines = [];
+      const liElements = ul.children;
+      for (const li of liElements) {
+        const checkbox = li.querySelector('.node-checkbox');
+        if (checkbox && checkbox.checked) {
+          const path = checkbox.getAttribute('data-path');
+          if (path) {
+            const childUl = li.querySelector('ul');
+            if (childUl) {
+              lines = lines.concat(getCheckedStructure(childUl));
+            } else {
+              lines.push(path);
+            }
+          }
+        }
+      }
+      return lines;
+    }
 
     // When "Copy LLM Context Prompt" is clicked, gather selected file paths and the query, then send to extension.
     copyPromptBtn.addEventListener('click', () => {
