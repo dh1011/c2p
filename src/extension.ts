@@ -293,7 +293,7 @@ function getWebviewContent(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="module" src="${panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'webview-ui-toolkit', 'dist', 'toolkit.min.js')
+    vscode.Uri.joinPath(context.extensionUri, 'dist', 'toolkit.min.js')
   )}"></script>
   <style>
     body { 
