@@ -2,7 +2,7 @@
   "name": "c2p",
   "displayName": "c2p",
   "description": "VS Code extension that helps copy code from a repository into a context prompt for LLMs ",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.93.0"
@@ -10,7 +10,9 @@
   "categories": [
     "Machine Learning"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:c2p.controlPanel"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
